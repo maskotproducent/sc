@@ -6,7 +6,7 @@ class Track < ActiveRecord::Base
   after_create :add_to_group
   before_destroy :remove_from_group
 
-  def self.identify_or_create_from_soundcloud(data)
+  def self.identify_or_create_from_soundcloud(data, competition_id)
     track_info = {
       :tid => data["id"],
       :title => data["title"],
@@ -14,7 +14,7 @@ class Track < ActiveRecord::Base
       :artwork_url => data["artwork_url"],
       :waveform_url => data["waveform_url"],
       :secret_token => data["secret_token"],
-      :competition_id => 1
+      :competition_id => competition_id
     }
 
     if track = Track.find_by_tid(track_info[:tid])
@@ -39,7 +39,7 @@ class Track < ActiveRecord::Base
   def add_to_group
     begin
       user.soundcloud.put("/groups/#{competition.group}/contributions/#{tid}") if competition.group
-    rescue SoundCloud::ResponseError
+    rescue Soundcloud::ResponseError
       puts "Could not put track in group."
     end
   end

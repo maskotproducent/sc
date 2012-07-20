@@ -1,6 +1,6 @@
 class TracksController < ApplicationController
 
-  before_filter :load_competition, :except => [:favorite]
+  before_filter :load_competition, :except => [:favorite, :destroy]
 
   def index
     @tracks = Track.order("created_at DESC").page(params[:page]).per(10)
@@ -17,10 +17,10 @@ class TracksController < ApplicationController
       redirect_to root_path
     end
   end
-  
+
   def create
-    track = current_user.soundcloud.get("/tracks/#{params[:track][:tid]}.json")    
-    @track = current_user.tracks.identify_or_create_from_soundcloud(track)    
+    track = current_user.soundcloud.get("/tracks/#{params[:track][:tid]}.json")
+    @track = current_user.tracks.identify_or_create_from_soundcloud(track, @competition.id)
     respond_to do |format|
       format.html { redirect_to @track, notice: 'Track was successfully submitted.' }
       format.json { render json: @track, status: :created, location: @track }
@@ -32,7 +32,7 @@ class TracksController < ApplicationController
     @track.destroy
     redirect_to root_path
   end
-  
+
   # Favorite
 
   def favorite
@@ -48,9 +48,9 @@ class TracksController < ApplicationController
 
     render :json => res
   end
-  
+
   # Record
-  
+
   def record
     render :text => "https://api.soundcloud.com/tracks.json?oauth_token=#{current_user.token}"
   end
